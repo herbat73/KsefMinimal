@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Faktura xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://crd.gov.pl/wzor/2025/06/25/13775/">
+	<Naglowek>
+		<KodFormularza kodSystemowy="FA (3)" wersjaSchemy="1-0E">FA</KodFormularza>
+		<WariantFormularza>3</WariantFormularza>
+		<DataWytworzeniaFa>2025-12-09T09:46:26.5411214Z</DataWytworzeniaFa>
+		<SystemInfo>Aplikacja Podatnika KSeF</SystemInfo>
+	</Naglowek>
+	<Podmiot1>
+		<PrefiksPodatnika>PL</PrefiksPodatnika>
+		<DaneIdentyfikacyjne>
+			<NIP>5242764991</NIP>
+			<Nazwa>Moja Test Firma S.A.</Nazwa>
+		</DaneIdentyfikacyjne>
+		<Adres>
+			<KodKraju>PL</KodKraju>
+			<AdresL1>ul. Testowa 1
+03-286 Warszawa</AdresL1>
+		</Adres>
+	</Podmiot1>
+	<Podmiot2>
+		<DaneIdentyfikacyjne>
+			<NIP>5242381942</NIP>
+			<Nazwa>Fajna SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ</Nazwa>
+		</DaneIdentyfikacyjne>
+		<Adres>
+			<KodKraju>PL</KodKraju>
+			<AdresL1>ul. Malborska 16c Warszawa 03-286 Warszawa</AdresL1>
+		</Adres>
+		<JST>2</JST>
+		<GV>2</GV>
+	</Podmiot2>
+	<Fa>
+		<KodWaluty>PLN</KodWaluty>
+		<P_1>2025-12-09</P_1>
+		<P_1M>Warszawa</P_1M>
+		<P_2>AATEST/2</P_2>
+		<P_6>2025-12-09</P_6>
+		<P_13_1>100</P_13_1>
+		<P_14_1>23</P_14_1>
+		<P_15>123</P_15>
+		<Adnotacje>
+			<P_16>2</P_16>
+			<P_17>2</P_17>
+			<P_18>2</P_18>
+			<P_18A>2</P_18A>
+			<Zwolnienie>
+				<P_19N>1</P_19N>
+			</Zwolnienie>
+			<NoweSrodkiTransportu>
+				<P_22N>1</P_22N>
+			</NoweSrodkiTransportu>
+			<P_23>2</P_23>
+			<PMarzy>
+				<P_PMarzyN>1</P_PMarzyN>
+			</PMarzy>
+		</Adnotacje>
+		<RodzajFaktury>VAT</RodzajFaktury>
+		<FaWiersz>
+			<NrWierszaFa>1</NrWierszaFa>
+			<P_7>Produkt SaaS</P_7>
+			<P_8A>szt</P_8A>
+			<P_8B>1</P_8B>
+			<P_9A>100</P_9A>
+			<P_11>100</P_11>
+			<P_12>23</P_12>
+		</FaWiersz>
+		<Platnosc>
+			<Zaplacono>1</Zaplacono>
+			<DataZaplaty>2025-12-09</DataZaplaty>
+		</Platnosc>
+	</Fa>
+</Faktura>
