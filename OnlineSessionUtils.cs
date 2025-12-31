@@ -15,6 +15,9 @@ namespace KsefMinimal;
 public static class OnlineSessionUtils
 {
     private const SystemCode DefaultSystemCode = SystemCode.FA3;
+    private const int ProcessingStatusCode = 150;
+    private const int DefaultSleepTimeMs = 1000;
+    private const int DefaultMaxAttempts = 60;
     
     /// <summary>
     /// Otwiera nową sesję online w systemie KSeF.
@@ -62,6 +65,41 @@ public static class OnlineSessionUtils
         return await ksefClient.SendOnlineSessionInvoiceAsync(sendOnlineInvoiceRequest, sessionReferenceNumber, accessToken).ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// Pobiera status faktury w ramach sesji, oczekując na zakończenie jej przetwarzania.
+    /// </summary>
+    /// <param name="kSeFClient">Klient KSeF.</param>
+    /// <param name="sessionReferenceNumber">Numer referencyjny sesji.</param>
+    /// <param name="invoiceReferenceNumber">Numer referencyjny faktury.</param>
+    /// <param name="accessToken">Token dostępu.</param>
+    /// <param name="sleepTime">Czas oczekiwania pomiędzy próbami (ms).</param>
+    /// <param name="maxAttempts">Maksymalna liczba prób.</param>
+    /// <returns>Odpowiedź ze statusem faktury w sesji.</returns>
+    public static async Task<SessionInvoice> GetSessionInvoiceStatusAsync(
+        IKSeFClient kSeFClient,
+        string sessionReferenceNumber,
+        string invoiceReferenceNumber,
+        string accessToken,
+        int sleepTime = DefaultSleepTimeMs,
+        int maxAttempts = DefaultMaxAttempts)
+    {
+        SessionInvoice sessionInvoiceStatus = null!;
+
+        for (int i = 0; i < maxAttempts; i++)
+        {
+            sessionInvoiceStatus = await kSeFClient.GetSessionInvoiceAsync(sessionReferenceNumber, invoiceReferenceNumber, accessToken).ConfigureAwait(false);
+
+            if (sessionInvoiceStatus.Status.Code != ProcessingStatusCode) // Trwa przetwarzanie
+            {
+                return sessionInvoiceStatus;
+            }
+
+            await Task.Delay(sleepTime).ConfigureAwait(false);
+        }
+
+        return sessionInvoiceStatus;
+    }
+    
     /// <summary>
     /// Zamyka sesję online w systemie KSeF.
     /// </summary>

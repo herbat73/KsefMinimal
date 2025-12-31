@@ -23,6 +23,7 @@ namespace KsefMinimal
         private static IKSeFClient KsefClient => _scope.ServiceProvider.GetRequiredService<IKSeFClient>();
         private static IAuthorizationClient AuthorizationClient => _scope.ServiceProvider.GetRequiredService<IAuthorizationClient>();
         private static ICryptographyService CryptographyService => _scope.ServiceProvider.GetRequiredService<ICryptographyService>();
+        private static  IVerificationLinkService VerificationLinkService => _scope.ServiceProvider.GetRequiredService<IVerificationLinkService>();
         private static string? _accessToken = null;
         private static string? _openSessionReferenceNumber =  null;
         
@@ -34,7 +35,7 @@ namespace KsefMinimal
 
             IConfiguration config = builder.Build();
 
-            var ksefSettings = config.GetSection("KsefSettings").Get<KsefSettings>();
+            var ksefSettings = config.GetSection(nameof(KsefSettings)).Get<KsefSettings>();
             Console.WriteLine($"NIP: {ksefSettings.Nip}");
             
             var services = new ServiceCollection();
@@ -42,13 +43,32 @@ namespace KsefMinimal
             _accessToken = await GetAccessTokenAsync(ksefSettings.Nip, ksefSettings.Token);
             Console.WriteLine($"accessToken: {_accessToken}");
 
-            //const string ksefReferenceNumber = "5242764991-20251204-010040171D43-1C";
-            //var invoiceSummary = await GetInvoiceSummary(ksefReferenceNumber);
-            //Console.WriteLine($"invoiceSummary InvoiceNumber: {invoiceSummary.InvoiceNumber}");
-
-            var sendInvoiceResponse = await SendInvoiceBasedOnTemplate();
+            var invoiceDate = DateTime.Now;
+            var sendInvoiceResponse = await SendInvoiceBasedOnTemplate(invoiceDate);
             Console.WriteLine($"sendInvoiceResponse ReferenceNumber: {sendInvoiceResponse.ReferenceNumber}");
-            await CloseSession();
+
+            var sendInvoiceStatus = await OnlineSessionUtils.GetSessionInvoiceStatusAsync(KsefClient,
+                _openSessionReferenceNumber,
+                sendInvoiceResponse.ReferenceNumber,
+                _accessToken);
+
+            var ksefReferenceNumber = "5242764991-20251231-0100A0B7A94E-4F";//sendInvoiceStatus.KsefNumber;
+            Console.WriteLine($"ksefReferenceNumber: {ksefReferenceNumber} sendInvoiceStatus Code: {sendInvoiceStatus.Status.Code}");
+
+            var invoiceSummary = await GetInvoiceSummary(ksefReferenceNumber, invoiceDate);
+            Console.WriteLine($"invoiceSummary InvoiceNumber: {invoiceSummary.InvoiceNumber}");
+            
+            var invoiceHash = invoiceSummary.InvoiceHash;
+            var invoicingDate = invoiceSummary.InvoicingDate;
+            
+            Console.WriteLine($"invoiceSummary invoiceHash: {invoiceHash}");
+            Console.WriteLine($"invoiceSummary invoicingDate: {invoicingDate}");
+            
+            var invoiceForOnlineUrl = VerificationLinkService.BuildInvoiceVerificationUrl(ksefSettings.Nip, invoicingDate.DateTime, invoiceHash);
+            
+            Console.WriteLine($"invoiceForOnlineUrl: {invoiceForOnlineUrl}");
+            
+            //await CloseSession();
             Console.WriteLine($"Session {_openSessionReferenceNumber} closed");
         }
 
@@ -65,9 +85,9 @@ namespace KsefMinimal
             services.AddSingleton<ICryptographyClient, CryptographyClient>();
             services.AddSingleton<ICertificateFetcher, DefaultCertificateFetcher>();
             services.AddSingleton<ICryptographyService, CryptographyService>();
-            // // Rejestracja usługi hostowanej (Hosted Service) jako singleton na potrzeby testów
+            // Rejestracja usługi hostowanej (Hosted Service) jako singleton na potrzeby testów
             services.AddSingleton<CryptographyWarmupHostedService>();
-            //
+            
             _serviceProvider = services.BuildServiceProvider(new ServiceProviderOptions
              {
                  ValidateOnBuild = true,
@@ -75,7 +95,7 @@ namespace KsefMinimal
             });
             
             _scope = _serviceProvider.CreateScope();
-            //
+            
             _scope.ServiceProvider.GetRequiredService<CryptographyWarmupHostedService>()
                  .StartAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
@@ -100,15 +120,15 @@ namespace KsefMinimal
             return result.AccessToken.Token;
         }
 
-        private static async Task<InvoiceSummary> GetInvoiceSummary(string ksefReferenceNumber)
+        private static async Task<InvoiceSummary> GetInvoiceSummary(string ksefReferenceNumber, DateTime invoiceDate)
         {
             InvoiceQueryFilters invoiceMetadataQueryRequest = new()
             {
                 KsefNumber = ksefReferenceNumber,
                 DateRange = new DateRange
                 {
-                    From = DateTime.Parse("2025-12-04T09:46:26.5411214Z", CultureInfo.InvariantCulture),
-                    To = DateTime.Parse("2025-12-04T09:46:26.5411214Z", CultureInfo.InvariantCulture).AddMinutes(1),
+                    From = invoiceDate.AddMinutes(-1),
+                    To = invoiceDate.AddMinutes(1),
                     DateType = DateType.Issue
                 }
             };
@@ -121,7 +141,7 @@ namespace KsefMinimal
             return invoiceMetadata;
         }
 
-        private static async Task<SendInvoiceResponse> SendInvoiceBasedOnTemplate()
+        private static async Task<SendInvoiceResponse> SendInvoiceBasedOnTemplate(DateTime invoiceDate)
         {
             var templateInvoicePath = Path.Combine(AppContext.BaseDirectory, "Templates", "TestFaktura.xml");
             if (!File.Exists(templateInvoicePath))
@@ -131,12 +151,12 @@ namespace KsefMinimal
             
             string templateInvoiceXml = await File.ReadAllTextAsync(templateInvoicePath);
             XDocument doc = XDocument.Parse(templateInvoiceXml, LoadOptions.PreserveWhitespace);
-            doc = SetDocXmlElement(doc, "DataWytworzeniaFa", DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture));
-            doc = SetDocXmlElement(doc, "P_1", DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
-            doc = SetDocXmlElement(doc, "P_6", DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
-            doc = SetDocXmlElement(doc, "P_2", "FV NI-4/12/2025");
+            doc = SetDocXmlElement(doc, "DataWytworzeniaFa", invoiceDate.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture));
+            doc = SetDocXmlElement(doc, "P_1", invoiceDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
+            doc = SetDocXmlElement(doc, "P_6", invoiceDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
+            doc = SetDocXmlElement(doc, "P_2", "FV NI-11/12/2025");
             doc = SetDocXmlElement(doc, "P_7", "Złote konto - pakiet miesięczny");
-            doc = SetDocXmlElement(doc, "DataZaplaty", DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
+            doc = SetDocXmlElement(doc, "DataZaplaty", invoiceDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
             doc = SetPodmiot2(doc);
             
             return await SendInvoice(doc.ToString(SaveOptions.DisableFormatting));
@@ -154,6 +174,7 @@ namespace KsefMinimal
 
             var sendInvoiceResponse = await OnlineSessionUtils.SendInvoice(KsefClient,
                 _openSessionReferenceNumber, _accessToken, encryptionData, CryptographyService, invoiceXml);
+            
             return sendInvoiceResponse;
         }
         
