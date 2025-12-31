@@ -52,9 +52,11 @@ namespace KsefMinimal
                 sendInvoiceResponse.ReferenceNumber,
                 _accessToken);
 
-            var ksefReferenceNumber = "5242764991-20251231-0100A0B7A94E-4F";//sendInvoiceStatus.KsefNumber;
+            var ksefReferenceNumber = sendInvoiceStatus.KsefNumber;
             Console.WriteLine($"ksefReferenceNumber: {ksefReferenceNumber} sendInvoiceStatus Code: {sendInvoiceStatus.Status.Code}");
 
+            await Task.Delay(TimeSpan.FromSeconds(10));
+            
             var invoiceSummary = await GetInvoiceSummary(ksefReferenceNumber, invoiceDate);
             Console.WriteLine($"invoiceSummary InvoiceNumber: {invoiceSummary.InvoiceNumber}");
             
@@ -68,7 +70,7 @@ namespace KsefMinimal
             
             Console.WriteLine($"invoiceForOnlineUrl: {invoiceForOnlineUrl}");
             
-            //await CloseSession();
+            await CloseSession();
             Console.WriteLine($"Session {_openSessionReferenceNumber} closed");
         }
 
@@ -127,8 +129,8 @@ namespace KsefMinimal
                 KsefNumber = ksefReferenceNumber,
                 DateRange = new DateRange
                 {
-                    From = invoiceDate.AddMinutes(-1),
-                    To = invoiceDate.AddMinutes(1),
+                    From = invoiceDate.AddMinutes(-10),
+                    To = invoiceDate.AddMinutes(10),
                     DateType = DateType.Issue
                 }
             };
@@ -143,6 +145,11 @@ namespace KsefMinimal
 
         private static async Task<SendInvoiceResponse> SendInvoiceBasedOnTemplate(DateTime invoiceDate)
         {
+            var start = new DateTime(invoiceDate.Year, invoiceDate.Month, invoiceDate.Day);
+            var elapsedTicks = invoiceDate.Ticks - start.Ticks; 
+            var invoiceNumber = $"FV {invoiceDate.Year}/{invoiceDate.Month}/{invoiceDate.Day}/{elapsedTicks}";
+            Console.WriteLine($"invoiceNumber {invoiceNumber}");
+            
             var templateInvoicePath = Path.Combine(AppContext.BaseDirectory, "Templates", "TestFaktura.xml");
             if (!File.Exists(templateInvoicePath))
             {
@@ -154,7 +161,7 @@ namespace KsefMinimal
             doc = SetDocXmlElement(doc, "DataWytworzeniaFa", invoiceDate.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture));
             doc = SetDocXmlElement(doc, "P_1", invoiceDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
             doc = SetDocXmlElement(doc, "P_6", invoiceDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
-            doc = SetDocXmlElement(doc, "P_2", "FV NI-11/12/2025");
+            doc = SetDocXmlElement(doc, "P_2", invoiceNumber);
             doc = SetDocXmlElement(doc, "P_7", "Złote konto - pakiet miesięczny");
             doc = SetDocXmlElement(doc, "DataZaplaty", invoiceDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
             doc = SetPodmiot2(doc);
