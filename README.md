@@ -1,6 +1,7 @@
 # Przykładowy mimalny test dla KSeF
 
-Test pobrania i wysyłki faktur do Krajowy System e-Faktur 
+Najprostszy test pobrania i wysyłki faktur do Krajowy System e-Faktur za pomocą [KSeF Client](https://github.com/CIRFMF/ksef-client-csharp) 
+
 
 ## Jak to zrobić?
 
@@ -8,9 +9,11 @@ Test pobrania i wysyłki faktur do Krajowy System e-Faktur
 https://ksef.podatki.gov.pl/bezplatne-narzedzia-ksef-20/aplikacja-podatnika-ksef-20-wersja-testowa/
 
 2. Wygeneruj token
-![Project Diagram](./Images/KsefToken.jpg)
+![Ksef token](./Images/KsefToken.jpg)
 
 3. Zmień plik appsettings.json z Twoimi danymi
 4. Uruchom
 5. W logu konsoli zobaczysz komunikaty
 6. W KSeF powinna pojawić się faktura
+
+![Ksef token](./Images/eFaktura_KSeF.jpg)
