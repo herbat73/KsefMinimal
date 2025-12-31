@@ -9,23 +9,24 @@
 	<Podmiot1>
 		<PrefiksPodatnika>PL</PrefiksPodatnika>
 		<DaneIdentyfikacyjne>
-			<NIP>5242764991</NIP>
+			<NIP>1231231234</NIP>
 			<Nazwa>Moja Test Firma S.A.</Nazwa>
 		</DaneIdentyfikacyjne>
 		<Adres>
 			<KodKraju>PL</KodKraju>
-			<AdresL1>ul. Testowa 1
-03-286 Warszawa</AdresL1>
+			<AdresL1>ul. Testowa 1</AdresL1>
+			<AdresL2>00-001 Warszawa</AdresL2>
 		</Adres>
 	</Podmiot1>
 	<Podmiot2>
 		<DaneIdentyfikacyjne>
-			<NIP>5242381942</NIP>
-			<Nazwa>Fajna SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ</Nazwa>
+			<NIP>1231231235</NIP>
+			<Nazwa>Nazwa Kupującego Sp. z .o.o.</Nazwa>
 		</DaneIdentyfikacyjne>
 		<Adres>
 			<KodKraju>PL</KodKraju>
-			<AdresL1>ul. Malborska 16c Warszawa 03-286 Warszawa</AdresL1>
+			<AdresL1>ul. Testowa 2</AdresL1>
+			<AdresL2>00-002 Warszawa</AdresL2>
 		</Adres>
 		<JST>2</JST>
 		<GV>2</GV>
@@ -34,7 +35,7 @@
 		<KodWaluty>PLN</KodWaluty>
 		<P_1>2025-12-09</P_1>
 		<P_1M>Warszawa</P_1M>
-		<P_2>AATEST/2</P_2>
+		<P_2>NUMER TEST</P_2>
 		<P_6>2025-12-09</P_6>
 		<P_13_1>100</P_13_1>
 		<P_14_1>23</P_14_1>
@@ -58,7 +59,7 @@
 		<RodzajFaktury>VAT</RodzajFaktury>
 		<FaWiersz>
 			<NrWierszaFa>1</NrWierszaFa>
-			<P_7>Produkt SaaS</P_7>
+			<P_7>Produkt</P_7>
 			<P_8A>szt</P_8A>
 			<P_8B>1</P_8B>
 			<P_9A>100</P_9A>
