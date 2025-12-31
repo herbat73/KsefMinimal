@@ -131,7 +131,7 @@ namespace KsefMinimal
             doc = SetDocXmlElement(doc, "DataWytworzeniaFa", DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture));
             doc = SetDocXmlElement(doc, "P_1", DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
             doc = SetDocXmlElement(doc, "P_6", DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
-            doc = SetDocXmlElement(doc, "P_2", "FV NI-2/12/2025");
+            doc = SetDocXmlElement(doc, "P_2", "FV NI-3/12/2025");
             doc = SetDocXmlElement(doc, "P_7", "Złote konto - pakiet miesięczny");
             doc = SetDocXmlElement(doc, "DataZaplaty", DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
             doc = SetPodmiot2(doc);
@@ -145,9 +145,10 @@ namespace KsefMinimal
             var openSessionRequest = await OnlineSessionUtils.OpenOnlineSessionAsync(KsefClient,
                 encryptionData,
                 _accessToken,
-                SystemCode.FA3).ConfigureAwait(false);
-            
-            var sendInvoiceResponse = await OnlineSessionUtils.SendInvoice(KsefClient, openSessionRequest.ReferenceNumber, _accessToken, encryptionData, CryptographyService, invoiceXml).ConfigureAwait(false);
+                SystemCode.FA3);
+
+            var sendInvoiceResponse = await OnlineSessionUtils.SendInvoice(KsefClient,
+                openSessionRequest.ReferenceNumber, _accessToken, encryptionData, CryptographyService, invoiceXml);
             return sendInvoiceResponse;
         }
         
@@ -164,7 +165,7 @@ namespace KsefMinimal
             XElement? podmiot2 = doc.Descendants().FirstOrDefault(e => e.Name.LocalName == "Podmiot2");
         
             XElement? nazwa = podmiot2?.Descendants().FirstOrDefault(e => e.Name.LocalName == "Nazwa");
-            nazwa.Value = "Nowa Nazwa";
+            nazwa.Value = "Nowa Nazwa Kupca";
         
             return doc;
         }
