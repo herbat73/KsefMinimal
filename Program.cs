@@ -24,6 +24,7 @@ namespace KsefMinimal
         private static IAuthorizationClient AuthorizationClient => _scope.ServiceProvider.GetRequiredService<IAuthorizationClient>();
         private static ICryptographyService CryptographyService => _scope.ServiceProvider.GetRequiredService<ICryptographyService>();
         private static string? _accessToken = null;
+        private static string? _openSessionReferenceNumber =  null;
         
         private static async Task Main(string[] args)
         {
@@ -47,6 +48,8 @@ namespace KsefMinimal
 
             var sendInvoiceResponse = await SendInvoiceBasedOnTemplate();
             Console.WriteLine($"sendInvoiceResponse ReferenceNumber: {sendInvoiceResponse.ReferenceNumber}");
+            await CloseSession();
+            Console.WriteLine($"Session {_openSessionReferenceNumber} closed");
         }
 
         private static void ConfigureServices(IServiceCollection services, IConfiguration configuration, string baseUrl)
@@ -131,7 +134,7 @@ namespace KsefMinimal
             doc = SetDocXmlElement(doc, "DataWytworzeniaFa", DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture));
             doc = SetDocXmlElement(doc, "P_1", DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
             doc = SetDocXmlElement(doc, "P_6", DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
-            doc = SetDocXmlElement(doc, "P_2", "FV NI-3/12/2025");
+            doc = SetDocXmlElement(doc, "P_2", "FV NI-4/12/2025");
             doc = SetDocXmlElement(doc, "P_7", "Złote konto - pakiet miesięczny");
             doc = SetDocXmlElement(doc, "DataZaplaty", DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
             doc = SetPodmiot2(doc);
@@ -147,8 +150,10 @@ namespace KsefMinimal
                 _accessToken,
                 SystemCode.FA3);
 
+            _openSessionReferenceNumber = openSessionRequest.ReferenceNumber;
+
             var sendInvoiceResponse = await OnlineSessionUtils.SendInvoice(KsefClient,
-                openSessionRequest.ReferenceNumber, _accessToken, encryptionData, CryptographyService, invoiceXml);
+                _openSessionReferenceNumber, _accessToken, encryptionData, CryptographyService, invoiceXml);
             return sendInvoiceResponse;
         }
         
@@ -169,6 +174,10 @@ namespace KsefMinimal
         
             return doc;
         }
-        
+
+        private static async Task CloseSession()
+        {
+            await OnlineSessionUtils.CloseOnlineSessionAsync(KsefClient, _openSessionReferenceNumber, _accessToken);
+        }
     }
 }
