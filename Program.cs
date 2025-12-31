@@ -112,8 +112,7 @@ namespace KsefMinimal
             const AuthenticationTokenContextIdentifierType contextType = AuthenticationTokenContextIdentifierType.Nip;
             AuthenticationTokenAuthorizationPolicy? authorizationPolicy = null;
             IAuthCoordinator authCoordinator = new AuthCoordinator(AuthorizationClient);
-        
-            // Act
+            
             var result = await authCoordinator.AuthKsefTokenAsync(
                 contextType,
                 nip,
@@ -164,9 +163,17 @@ namespace KsefMinimal
             var templateInvoiceXml = await File.ReadAllTextAsync(templateInvoicePath);
             var doc = XDocument.Parse(templateInvoiceXml, LoadOptions.PreserveWhitespace);
             doc = SetDocXmlElement(doc, "DataWytworzeniaFa", invoiceDate.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture));
+            // summary
             doc = SetDocXmlElement(doc, "P_1", invoiceDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
             doc = SetDocXmlElement(doc, "P_6", invoiceDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
             doc = SetDocXmlElement(doc, "P_2", invoiceNumber);
+            var totalNetto = productLineInfo.NetPrice * productLineInfo.Qty;
+            var totalVat = totalNetto  * productLineInfo.VatRate / 100;
+            var gross = totalNetto + totalVat;
+            doc = SetDocXmlElement(doc, "P_13_1", totalNetto.ToString(CultureInfo.InvariantCulture));
+            doc = SetDocXmlElement(doc, "P_14_1", totalVat.ToString(CultureInfo.InvariantCulture));
+            doc = SetDocXmlElement(doc, "P_15", gross.ToString(CultureInfo.InvariantCulture));
+            // product line
             doc = SetDocXmlElement(doc, "P_7", productLineInfo.ProductName);
             doc = SetDocXmlElement(doc, "P_8A", productLineInfo.Meassure);
             doc = SetDocXmlElement(doc, "P_8B", productLineInfo.Qty.ToString(CultureInfo.InvariantCulture));
@@ -245,10 +252,10 @@ namespace KsefMinimal
         {
             var productLineInfo = new ProductLineInfo()
             {
-                ProductName = "Złote konto w systemie SaaS - roczne",
-                NetPrice = 100,
+                ProductName = "Testowy produkt",
+                NetPrice = 234,
                 VatRate = 23,
-                Qty = 1,
+                Qty = 2,
                 Meassure = "szt"
             };
             return productLineInfo;
